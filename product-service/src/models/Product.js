@@ -11,17 +11,22 @@ const Product = sequelize.define(
     },
     name: {
       type: DataTypes.STRING,
+      required: true,
       allowNull: false,
     },
     description: {
       type: DataTypes.STRING,
+      required: true,
+      allowNull: false,
     },
     price: {
       type: DataTypes.FLOAT,
+      required: true,
       allowNull: false,
     },
     stock: {
       type: DataTypes.INTEGER,
+      required: true,
       allowNull: false,
     },
   },

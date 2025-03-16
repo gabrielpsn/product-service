@@ -1,15 +1,13 @@
 # product-service
 
-    npm install express sequelize mysql2 dotenv cors
-    npm install --save-dev jest supertest
-    npm install --save-dev jest supertest sequelize-mock
-    npm install swagger-jsdoc swagger-ui-express
+    cd product-service
+    npm install
+    npm run start
+    npm run test
 
 # order-service
 
-    npm install express sequelize mysql2 dotenv cors
-    npm install --save-dev sqlite3
-    npm install --save-dev jest supertest
-    npm install --save-dev jest supertest sequelize-mock
-    npm install axios
-    npm install swagger-jsdoc swagger-ui-express
+    cd order-service
+    npm install
+    npm run start
+    npm run test
