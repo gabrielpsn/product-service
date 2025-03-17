@@ -5,116 +5,126 @@ const ProductController = require("../controllers/ProductController");
 /**
  * @swagger
  * tags:
- *   name: Produtos
- *   description: API para gerenciamento de produtos e controle de estoque.
+ *   name: Products
+ *   description: API for product management and inventory control
  */
 
 /**
  * @swagger
  * /products:
  *   post:
- *     summary: Cria um novo produto
- *     tags: [Produtos]
+ *     summary: Create a new product
+ *     tags: [Products]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - stock
+ *               - description
  *             properties:
  *               name:
  *                 type: string
- *                 description: Nome do produto.
+ *                 description: Product Name
  *               price:
  *                 type: number
- *                 description: Preço do produto.
+ *                 description: Product Price
  *               stock:
  *                 type: integer
- *                 description: Quantidade de estoque disponível.
+ *                 description: Stock Quantity
  *               description:
  *                 type: string
- *                 description: Descrição do produto.
+ *                 description: Product Description
  *     responses:
  *       201:
- *         description: Produto criado com sucesso
+ *         description: Product created successfully
  *       400:
- *         description: Erro ao criar produto
+ *         description: All fields are required
+ *       500:
+ *         description: Error creating product
  */
 router.post("/products", ProductController.createProduct);
+
 /**
  * @swagger
  * /products:
  *   get:
- *     summary: Retorna todos os produtos
- *     tags: [Produtos]
+ *     summary: Return all products
+ *     tags: [Products]
  *     responses:
  *       200:
- *         description: Lista de produtos
+ *         description: Product List
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   productId:
- *                     type: integer
- *                   name:
- *                     type: string
- *                   price:
- *                     type: number
- *                   stock:
- *                     type: integer
- *                   description:
- *                     type: string
+ *                 $ref: '#/components/schemas/Product'
+ * components:
+ *   schemas:
+ *     Product:
+ *       type: object
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           description: Product ID
+ *         name:
+ *           type: string
+ *           description: Product Name
+ *         price:
+ *           type: number
+ *           description: Product Price
+ *         stock:
+ *           type: integer
+ *           description: Product Stock
+ *         description:
+ *           type: string
+ *           description: Product Description
  */
 router.get("/products", ProductController.getAllProducts);
+
 /**
  * @swagger
  * /products/{id}:
  *   get:
- *     summary: Retorna um produto específico
- *     tags: [Produtos]
+ *     summary: Returns a specific product
+ *     tags: [Products]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID do produto que deseja consultar.
+ *         description: ID of the product you want to query
  *         schema:
  *           type: integer
  *     responses:
  *       200:
- *         description: Produto encontrado
+ *         description: Product found
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 productId:
- *                   type: integer
- *                 name:
- *                   type: string
- *                 price:
- *                   type: number
- *                 stock:
- *                   type: integer
- *                 description:
- *                   type: string
+ *               $ref: '#/components/schemas/Product'
  *       404:
- *         description: Produto não encontrado
+ *         description: Product not found
+ *       500:
+ *         description: Error searching for product
  */
 router.get("/products/:id", ProductController.getProductById);
+
 /**
  * @swagger
  * /products/{id}:
  *   put:
- *     summary: Atualiza um produto existente
- *     tags: [Produtos]
+ *     summary: Update an existing product
+ *     tags: [Products]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID do produto a ser atualizado.
+ *         description: ID of the product to be updated
  *         schema:
  *           type: integer
  *     requestBody:
@@ -122,36 +132,28 @@ router.get("/products/:id", ProductController.getProductById);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               price:
- *                 type: number
- *               stock:
- *                 type: integer
- *               description:
- *                 type: string
+ *             $ref: '#/components/schemas/Product'
  *     responses:
  *       200:
- *         description: Produto atualizado com sucesso
- *       400:
- *         description: Erro ao atualizar produto
+ *         description: Product updated successfully
  *       404:
- *         description: Produto não encontrado
+ *         description: Product not found
+ *       500:
+ *         description: Error updating product
  */
 router.put("/products/:id", ProductController.updateProduct);
+
 /**
  * @swagger
  * /products/{productId}/decrease-stock:
  *   put:
- *     summary: Reduz o estoque de um produto específico
- *     tags: [Produtos]
+ *     summary: Reduces inventory of a specific product
+ *     tags: [Products]
  *     parameters:
  *       - in: path
  *         name: productId
  *         required: true
- *         description: ID do produto para o qual a quantidade de estoque será reduzida.
+ *         description: Product ID for which the stock quantity will be reduced
  *         schema:
  *           type: integer
  *     requestBody:
@@ -160,42 +162,45 @@ router.put("/products/:id", ProductController.updateProduct);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - quantity
  *             properties:
  *               quantity:
  *                 type: integer
- *                 description: Quantidade a ser retirada do estoque.
+ *                 description: Quantity to be removed from stock
  *     responses:
  *       200:
- *         description: Estoque do produto atualizado com sucesso.
+ *         description: Product stock updated successfully
  *       400:
- *         description: Quantidade insuficiente em estoque.
+ *         description: Insufficient quantity in stock
  *       404:
- *         description: Produto não encontrado.
+ *         description: Product not found
  *       500:
- *         description: Erro interno ao tentar atualizar o estoque.
+ *         description: Internal error when trying to update inventory
  */
 router.put(
   "/products/:productId/decrease-stock",
   ProductController.decreaseStock
 );
+
 /**
  * @swagger
  * /products/{id}:
  *   delete:
- *     summary: Exclui um produto específico
- *     tags: [Produtos]
+ *     summary: Delete a specific product
+ *     tags: [Products]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID do produto a ser excluído.
+ *         description: Product ID to be deleted
  *         schema:
  *           type: integer
  *     responses:
  *       200:
- *         description: Produto excluído com sucesso
+ *         description: Product deleted successfully
  *       404:
- *         description: Produto não encontrado
+ *         description: Product not found
  */
 router.delete("/products/:id", ProductController.deleteProduct);
 

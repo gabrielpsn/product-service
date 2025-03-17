@@ -5,18 +5,18 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "API de Pedidos",
+      title: "API for product management and inventory control",
       version: "1.0.0",
-      description: "Documentação da API de pedidos usando Swagger",
+      description: "Product API Documentation using Swagger",
     },
     servers: [
       {
-        url: "http://localhost:3001/api", // URL base da API
-        description: "Servidor Local",
+        url: "http://localhost:4001/api",
+        description: "Local Server",
       },
     ],
   },
-  apis: ["./src/routes/*.js"], // Caminho para os arquivos de rota
+  apis: ["./src/routes/*.js"],
 };
 
 const swaggerSpec = swaggerJSDoc(options);

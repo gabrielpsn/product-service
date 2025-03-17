@@ -1,14 +1,28 @@
 // product-service/index.js
 const { ApolloServer } = require("@apollo/server");
-const { startStandaloneServer } = require("@apollo/server/standalone");
+const { expressMiddleware } = require("@apollo/server/express4");
 const { buildSubgraphSchema } = require("@apollo/subgraph");
 const { gql } = require("graphql-tag");
 const express = require("express");
 const cors = require("cors");
+const setupSwagger = require("./src/config/swagger");
 
+// Configuração do Express
 const app = express();
-app.use(cors()); // 👈 Adicione CORS
+const PORT = 4001;
 
+// Middlewares básicos
+app.use(cors());
+app.use(express.json());
+
+// Configuração do Swagger
+setupSwagger(app);
+
+// Rotas REST
+const productRoutes = require("./src/routes/product.routes");
+app.use("/api", productRoutes);
+
+// Dados mockados
 const products = [
   {
     id: "1",
@@ -26,6 +40,7 @@ const products = [
   },
 ];
 
+// Schema GraphQL
 const typeDefs = gql`
   type Product @key(fields: "id") {
     id: ID!
@@ -41,6 +56,7 @@ const typeDefs = gql`
   }
 `;
 
+// Resolvers GraphQL
 const resolvers = {
   Query: {
     product: (_, { id }) => products.find((p) => p.id === id),
@@ -51,13 +67,32 @@ const resolvers = {
   },
 };
 
-const server = new ApolloServer({
+// Configuração do Apollo Server
+const apolloServer = new ApolloServer({
   schema: buildSubgraphSchema({ typeDefs, resolvers }),
 });
 
-startStandaloneServer(server, {
-  listen: { port: 4001 },
-  context: async ({ req }) => ({ req }),
-}).then(({ url }) => {
-  console.log(`🚀 Product Service: ${url}`);
-});
+// Inicialização do servidor
+async function startServer() {
+  await apolloServer.start();
+
+  // Middleware do GraphQL
+  app.use(
+    "/graphql",
+    expressMiddleware(apolloServer, {
+      context: async ({ req }) => ({ req }),
+    })
+  );
+
+  // Inicia o servidor
+  if (process.env.NODE_ENV !== "test") {
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor rodando na porta ${PORT}`);
+      console.log(`📚 Swagger UI: http://localhost:${PORT}/api-docs`);
+      console.log(`🔄 GraphQL: http://localhost:${PORT}/graphql`);
+      console.log(`📡 REST API: http://localhost:${PORT}/api/products`);
+    });
+  }
+}
+
+startServer();

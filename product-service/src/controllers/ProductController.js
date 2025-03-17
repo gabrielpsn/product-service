@@ -7,15 +7,13 @@ exports.createProduct = async (req, res) => {
 
     // Verificação de campos obrigatórios
     if (!name || !description || price == null || stock == null) {
-      return res
-        .status(400)
-        .json({ message: "Todos os campos são obrigatórios" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const product = await Product.create({ name, description, price, stock });
     return res.status(201).json(product);
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao criar produto" });
+    return res.status(500).json({ error: "Error creating product" });
   }
 };
 
@@ -25,7 +23,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await Product.findAll();
     return res.status(200).json(products);
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao buscar produtos" });
+    return res.status(500).json({ error: "Error searching for products" });
   }
 };
 
@@ -34,11 +32,10 @@ exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
 
-    if (!product)
-      return res.status(404).json({ message: "Produto não encontrado" });
+    if (!product) return res.status(404).json({ message: "Product not found" });
     return res.status(200).json(product);
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao buscar produto" });
+    return res.status(500).json({ error: "Error searching for product" });
   }
 };
 
@@ -49,15 +46,14 @@ exports.updateProduct = async (req, res) => {
       where: { id: req.params.id },
     });
 
-    if (!updated)
-      return res.status(404).json({ message: "Produto não encontrado" });
+    if (!updated) return res.status(404).json({ message: "Product not found" });
 
     const product = await Product.findByPk(req.params.id);
     return res
       .status(200)
-      .json({ data: product, message: "Produto atualizado com sucesso" });
+      .json({ data: product, message: "Product updated successfully" });
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao atualizar produto" });
+    return res.status(500).json({ error: "Error updating product" });
   }
 };
 
@@ -67,8 +63,7 @@ exports.deleteProduct = async (req, res) => {
     const deleted = await Product.destroy({
       where: { id: req.params.id },
     });
-    if (!deleted)
-      return res.status(404).json({ message: "Produto não encontrado" });
+    if (!deleted) return res.status(404).json({ message: "Product not found" });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -91,7 +86,7 @@ exports.decreaseStock = async (req, res) => {
     const product = await Product.findByPk(productId);
 
     if (!product) {
-      return res.status(404).json({ message: "Produto não encontrado" });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     // Verificando se há estoque suficiente

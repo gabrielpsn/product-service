@@ -34,11 +34,11 @@ describe("Product Controller", () => {
   it("Should return error 400 when trying to create a product without required fields", async () => {
     const response = await request(app).post("/api/products").send({});
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Todos os campos são obrigatórios");
+    expect(response.body.message).toBe("All fields are required");
   });
 
   it("Should return error 500 if product creation fails", async () => {
-    Product.create.mockRejectedValue(new Error("Erro ao criar produto"));
+    Product.create.mockRejectedValue(new Error("Error creating product"));
 
     const response = await request(app).post("/api/products").send({
       name: "Produto Teste",
@@ -48,7 +48,7 @@ describe("Product Controller", () => {
     });
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Erro ao criar produto");
+    expect(response.body.error).toBe("Error creating product");
   });
 
   it("Should return the product list", async () => {
@@ -85,7 +85,7 @@ describe("Product Controller", () => {
       .put("/api/products/9999")
       .send({ name: "Produto Atualizado" });
     expect(response.status).toBe(404);
-    expect(response.body.message).toBe("Produto não encontrado");
+    expect(response.body.message).toBe("Product not found");
   });
 
   it("Must update a product", async () => {
@@ -103,7 +103,7 @@ describe("Product Controller", () => {
       .put("/api/products/1")
       .send({ name: "Product Updated" });
     expect(response.status).toBe(200);
-    expect(response.body.message).toBe("Produto atualizado com sucesso");
+    expect(response.body.message).toBe("Product updated successfully");
   });
 
   it("Should return 404 when trying to delete a non-existent product", async () => {
@@ -111,7 +111,7 @@ describe("Product Controller", () => {
 
     const response = await request(app).delete("/api/products/999");
     expect(response.status).toBe(404);
-    expect(response.body.message).toBe("Produto não encontrado");
+    expect(response.body.message).toBe("Product not found");
   });
 
   it("Must delete a product", async () => {
@@ -142,7 +142,10 @@ describe("Product Controller", () => {
     const response = await request(app).get("/api/products");
 
     expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty("error", "Erro ao buscar produtos");
+    expect(response.body).toHaveProperty(
+      "error",
+      "Error searching for products"
+    );
   });
 
   it("Should return error 404 when searching for a non-existent product", async () => {
@@ -150,26 +153,28 @@ describe("Product Controller", () => {
 
     const response = await request(app).get("/api/products/999");
     expect(response.status).toBe(404);
-    expect(response.body.message).toBe("Produto não encontrado");
+    expect(response.body.message).toBe("Product not found");
   });
 
   it("Should return error 500 if product fetch fails", async () => {
-    Product.findByPk.mockRejectedValue(new Error("Erro ao buscar produto"));
+    Product.findByPk.mockRejectedValue(
+      new Error("Error searching for product")
+    );
 
     const response = await request(app).get("/api/products/1");
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Erro ao buscar produto");
+    expect(response.body.error).toBe("Error searching for product");
   });
 
   it("Should return error 500 when trying to update a product and failing", async () => {
     Product.findByPk.mockResolvedValue({ id: 1 });
-    Product.update.mockRejectedValue(new Error("Erro ao atualizar produto"));
+    Product.update.mockRejectedValue(new Error("Error updating product"));
 
     const response = await request(app)
       .put("/api/products/1")
       .send({ name: "Produto Atualizado" });
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Erro ao atualizar produto");
+    expect(response.body.error).toBe("Error updating product");
   });
 
   it("Should return error 500 when trying to delete a product and failing", async () => {
@@ -196,7 +201,7 @@ describe("Product Controller", () => {
       .put("/api/products/999/decrease-stock")
       .send({ quantity: 5 });
     expect(response.status).toBe(404);
-    expect(response.body.message).toBe("Produto não encontrado");
+    expect(response.body.message).toBe("Product not found");
   });
 
   it("Should return error if there is not enough stock", async () => {

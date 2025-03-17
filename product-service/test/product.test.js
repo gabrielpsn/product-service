@@ -59,7 +59,7 @@ describe("E2E - Product Microservice", () => {
     const response = await request(app).get("/api/products/99999");
 
     expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty("message", "Produto não encontrado");
+    expect(response.body).toHaveProperty("message", "Product not found");
   });
 
   it("Must delete a product", async () => {
@@ -72,6 +72,6 @@ describe("E2E - Product Microservice", () => {
     const response = await request(app).delete(`/api/products/${productId}`);
 
     expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty("message", "Produto não encontrado");
+    expect(response.body).toHaveProperty("message", "Product not found");
   });
 });
