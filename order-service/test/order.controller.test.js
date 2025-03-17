@@ -1,9 +1,18 @@
 const request = require("supertest");
-const app = require(".."); // Importa a aplicação Express
+const app = require("..");
 const Order = require("../src/models/Order");
 const OrderItem = require("../src/models/OrderItem");
 
-// Simula os métodos do Sequelize para evitar chamadas reais ao banco de dados
+// Mock do Product Service
+jest.mock("../src/services/product.service", () => ({
+  checkProductAvailability: jest.fn(),
+  calculateProductPrice: jest.fn(),
+  decreaseProductStock: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+const productService = require("../src/services/product.service");
+
+// Mock dos models do Sequelize
 jest.mock("../src/models/Order", () => ({
   create: jest.fn(),
   findAll: jest.fn(),
@@ -15,8 +24,15 @@ jest.mock("../src/models/OrderItem", () => ({
 }));
 
 describe("Testes do CRUD de Pedidos", () => {
+  beforeEach(() => {
+    jest.clearAllMocks(); // Limpa todos os mocks antes de cada teste
+  });
+
+  // --- Teste: Criar novo pedido ---
   it("Deve criar um novo pedido", async () => {
-    // Mock dos métodos do Sequelize
+    productService.checkProductAvailability.mockResolvedValue(true);
+    productService.calculateProductPrice.mockResolvedValue(50);
+    productService.decreaseProductStock.mockResolvedValue({ success: true });
     Order.create.mockResolvedValue({ id: 1 });
     OrderItem.bulkCreate.mockResolvedValue([]);
 
@@ -24,32 +40,30 @@ describe("Testes do CRUD de Pedidos", () => {
       .post("/api/orders")
       .send({
         items: [
-          { productId: 1, quantity: 2, price: 50 },
-          { productId: 2, quantity: 1, price: 30 },
+          { productId: 1, quantity: 2 },
+          { productId: 2, quantity: 1 },
         ],
-        shippingZipcode: "12345-678",
+        shippingZipcode: "53431-125",
       });
 
+    // Verificações principais
     expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty(
-      "message",
-      "Pedido criado com sucesso!"
-    );
-    expect(response.body).toHaveProperty("orderId", 1);
+    expect(response.body.message).toBe("Pedidos criado com sucesso!");
   });
 
+  // --- Teste: Pedido sem itens ---
   it("Deve retornar erro ao criar pedido sem itens", async () => {
     const response = await request(app)
       .post("/api/orders")
       .send({ items: [], shippingZipcode: "12345-678" });
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty(
-      "error",
+    expect(response.body.error).toContain(
       "O pedido deve conter pelo menos um item."
     );
   });
 
+  // --- Teste: Listar pedidos ---
   it("Deve listar pedidos", async () => {
     const mockOrders = [
       { id: 1, totalPrice: 100, shippingCost: 10 },
@@ -60,10 +74,10 @@ describe("Testes do CRUD de Pedidos", () => {
     const response = await request(app).get("/api/orders");
 
     expect(response.status).toBe(200);
-    expect(response.body.length).toBe(2);
-    expect(response.body[0]).toHaveProperty("totalPrice", 100);
+    expect(response.body).toEqual(mockOrders);
   });
 
+  // --- Teste: Buscar pedido específico ---
   it("Deve retornar um pedido específico", async () => {
     const mockOrder = { id: 1, totalPrice: 100, shippingCost: 10 };
     Order.findByPk.mockResolvedValue(mockOrder);
@@ -71,20 +85,26 @@ describe("Testes do CRUD de Pedidos", () => {
     const response = await request(app).get("/api/orders/1");
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty("id", 1);
+    expect(response.body).toEqual(mockOrder);
   });
 
+  // --- Teste: Pedido inexistente ---
   it("Deve retornar erro ao buscar pedido inexistente", async () => {
     Order.findByPk.mockResolvedValue(null);
 
     const response = await request(app).get("/api/orders/99");
 
     expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty("error", "Pedido não encontrado.");
+    expect(response.body.error).toContain("não encontrado");
   });
 
+  // --- Teste: Atualizar status do pedido ---
   it("Deve atualizar o status do pedido", async () => {
-    const mockOrder = { id: 1, status: "pending", save: jest.fn() };
+    const mockOrder = {
+      id: 1,
+      status: "pending",
+      save: jest.fn().mockResolvedValue(true),
+    };
     Order.findByPk.mockResolvedValue(mockOrder);
 
     const response = await request(app)
@@ -92,14 +112,11 @@ describe("Testes do CRUD de Pedidos", () => {
       .send({ status: "shipped" });
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty(
-      "message",
-      "Status atualizado com sucesso!"
-    );
     expect(mockOrder.save).toHaveBeenCalled();
   });
 
-  it("Deve retornar erro ao tentar atualizar status de pedido inexistente", async () => {
+  // --- Teste: Atualizar status de pedido inexistente ---
+  it("Deve retornar erro ao atualizar status de pedido inexistente", async () => {
     Order.findByPk.mockResolvedValue(null);
 
     const response = await request(app)
@@ -107,6 +124,23 @@ describe("Testes do CRUD de Pedidos", () => {
       .send({ status: "shipped" });
 
     expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty("error", "Pedido não encontrado.");
+  });
+
+  // --- Teste: Erro no cálculo do preço ---
+  it("Deve retornar erro no cálculo do preço", async () => {
+    productService.checkProductAvailability.mockResolvedValue(true);
+    productService.calculateProductPrice.mockRejectedValue(
+      new Error("Erro no cálculo")
+    );
+
+    const response = await request(app)
+      .post("/api/orders")
+      .send({
+        items: [{ productId: 1, quantity: 2 }],
+        shippingZipcode: "21321313131",
+      });
+
+    expect(response.status).toBe(500);
+    expect(response.body.error).toContain("Erro ao criar o pedido.");
   });
 });

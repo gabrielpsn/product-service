@@ -1,45 +1,7 @@
 const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
 const { calculateFreight } = require("../services/shipping.service");
-const axios = require("axios");
-
-const BASE_URL_PRODUCT_SERVICE = "http://localhost:3001/api/products";
-
-// Função para dar baixa no estoque do microserviço de produto
-async function decreaseStock(products) {
-  // Itera sobre cada produto no pedido
-  for (const product of products) {
-    try {
-      // Faz a requisição PUT para dar baixa no estoque
-      const response = await axios.put(
-        `${BASE_URL_PRODUCT_SERVICE}/${product.productId}/decrease-stock`,
-        {
-          quantity: product.quantity,
-        }
-      );
-
-      // Verifica se a requisição foi bem-sucedida
-      if (response.status === 200) {
-        console.log(
-          `Estoque do produto ${product.productId} atualizado com sucesso!`
-        );
-      } else {
-        console.log(
-          `Erro ao atualizar estoque para o produto ${product.productId}`
-        );
-      }
-    } catch (error) {
-      // Caso ocorra um erro, podemos tratar aqui
-      console.error(
-        `Erro ao tentar dar baixa no estoque para o produto ${product.productId}: `,
-        error
-      );
-      throw new Error(
-        `Erro ao tentar dar baixa no estoque para o produto ${product.productId}`
-      );
-    }
-  }
-}
+const productService = require("../services/product.service");
 
 exports.createOrder = async (req, res) => {
   try {
@@ -54,7 +16,7 @@ exports.createOrder = async (req, res) => {
 
     // Simulação de cálculo de frete (poderia ser um serviço externo)
     // Calculando o frete
-    const shippingCost = await calculateFreight(shippingZipcode);
+    shippingCost = await calculateFreight(shippingZipcode);
 
     // Calcula o preço total
     const totalPrice =
@@ -74,12 +36,13 @@ exports.createOrder = async (req, res) => {
 
     await OrderItem.bulkCreate(orderItems);
 
-    // Chama a função de dar baixa no estoque após a criação do pedido
-    await decreaseStock(orderItems);
+    for (const item of items) {
+      await productService.decreaseProductStock(item.productId, item.quantity);
+    }
 
     res
       .status(201)
-      .json({ message: "Pedido criado com sucesso!", orderId: order.id });
+      .json({ message: "Pedidos criado com sucesso!", data: items });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao criar o pedido." });

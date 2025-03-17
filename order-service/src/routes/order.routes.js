@@ -65,6 +65,24 @@ router.get("/orders", orderController.getOrders);
  *         description: Pedido não encontrado
  */
 router.get("/orders/:id", orderController.getOrderById);
+/**
+ * @swagger
+ * /orders/{id}/status:
+ *   get:
+ *     summary: Atualiza o status de um pedido
+ *     tags: [Pedidos]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Status do pedido atualizado
+ *       404:
+ *         description: Pedido não encontrado
+ */
 router.put("/orders/:id/status", orderController.updateOrderStatus);
 
 module.exports = router;
