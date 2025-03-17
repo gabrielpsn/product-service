@@ -5,7 +5,7 @@ const setupSwagger = require("./src/config/swagger"); // Importa Swagger
 
 app.use(express.json());
 
-setupSwagger(app); // Inicializa Swagger
+setupSwagger(app);
 
 app.use("/api", orderRoutes);
 
