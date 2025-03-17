@@ -4,16 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
     "test": "jest --coverage --forceExit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apollo/gateway": "^2.10.0",
+    "@apollo/server": "^4.11.3",
+    "@apollo/subgraph": "^2.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "graphql": "^16.8.1",
+    "graphql-tag": "^2.12.6",
     "mysql2": "^3.13.0",
     "sequelize": "^6.37.6",
     "swagger-jsdoc": "^6.2.8",

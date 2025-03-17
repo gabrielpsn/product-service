@@ -15,7 +15,7 @@ const productRoutes = require("./src/routes/product.routes");
 app.use("/api", productRoutes);
 
 // Porta do servidor
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4001;
 app.listen(PORT, () => {
   console.log(`✅ Product Service rodando na porta ${PORT}`);
 });

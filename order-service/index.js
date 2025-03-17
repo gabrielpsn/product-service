@@ -1,17 +1,52 @@
-const express = require("express");
-const app = express();
-const orderRoutes = require("./src/routes/order.routes");
-const setupSwagger = require("./src/config/swagger"); // Importa Swagger
+// order-service/index.js
+const { ApolloServer } = require("@apollo/server");
+const { buildSubgraphSchema } = require("@apollo/subgraph");
+const { gql } = require("graphql-tag");
+const { startStandaloneServer } = require("@apollo/server/standalone");
 
-app.use(express.json());
+const typeDefs = gql`
+  type Order @key(fields: "id") {
+    id: ID!
+    productId: ID!
+    quantity: Int!
+    totalPrice: Float!
+    product: Product @requires(fields: "productId")
+  }
 
-setupSwagger(app);
+  extend type Product @key(fields: "id") {
+    id: ID! @external
+  }
 
-app.use("/api", orderRoutes);
+  extend type Query {
+    order(id: ID!): Order
+    orders: [Order]
+  }
+`;
 
-const PORT = process.env.PORT || 5002;
-app.listen(PORT, () => {
-  console.log(`Order Service rodando na porta ${PORT}`);
+const resolvers = {
+  Query: {
+    order: (_, { id }) => ({
+      id,
+      productId: "1",
+      quantity: 2,
+      totalPrice: 200.0,
+    }),
+    orders: () => [{ id: "1", productId: "1", quantity: 2, totalPrice: 200.0 }],
+  },
+  Order: {
+    product: (order) => ({ __typename: "Product", id: order.productId }),
+  },
+};
+
+const server = new ApolloServer({
+  schema: buildSubgraphSchema({ typeDefs, resolvers }),
 });
 
-module.exports = app;
+async function startServer() {
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 4002 },
+  });
+  console.log(`Order service running at ${url}`);
+}
+
+startServer();

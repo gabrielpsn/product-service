@@ -19,6 +19,6 @@ app.post("/calculate", (req, res) => {
   return res.json({ price: parseFloat(freightPrice) });
 });
 
-app.listen(3005, () =>
+app.listen(4003, () =>
   console.log("Mock de API de Frete rodando na porta 3005")
 );
