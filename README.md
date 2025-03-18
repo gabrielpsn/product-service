@@ -98,9 +98,9 @@ Antes de iniciar, certifique-se de ter instalado:
 
 ````
 4. Execute as migrações do banco:
-```sh
-npm run migrate
-````
+   ```sh
+   npm run migrate
+   ````
 
 5. Inicie o serviço:
    ```sh
