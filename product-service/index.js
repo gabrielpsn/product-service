@@ -6,10 +6,12 @@ const { gql } = require("graphql-tag");
 const express = require("express");
 const cors = require("cors");
 const setupSwagger = require("./src/config/swagger");
+const productRoutes = require("./src/routes/product.routes");
+require("dotenv").config();
 
 // Configuração do Express
 const app = express();
-const PORT = 4001;
+const PORT = process.env.PORT;
 
 // Middlewares básicos
 app.use(cors());
@@ -19,7 +21,6 @@ app.use(express.json());
 setupSwagger(app);
 
 // Rotas REST
-const productRoutes = require("./src/routes/product.routes");
 app.use("/api", productRoutes);
 
 // Dados mockados
@@ -96,3 +97,5 @@ async function startServer() {
 }
 
 startServer();
+
+module.exports = app;

@@ -1,9 +1,7 @@
-// gateway/index.js
 import { ApolloServer } from "@apollo/server";
 import { ApolloGateway, IntrospectAndCompose } from "@apollo/gateway";
 import { startStandaloneServer } from "@apollo/server/standalone";
 
-// Configurar o Gateway
 const gateway = new ApolloGateway({
   supergraphSdl: new IntrospectAndCompose({
     subgraphs: [
@@ -14,10 +12,8 @@ const gateway = new ApolloGateway({
   }),
 });
 
-// Criar o Apollo Server
 const server = new ApolloServer({ gateway });
 
-// Iniciar o servidor
 startStandaloneServer(server, {
   listen: { port: 4000 },
 }).then(({ url }) => {

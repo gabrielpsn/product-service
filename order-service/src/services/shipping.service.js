@@ -14,7 +14,7 @@ const calculateFreight = async (zipcode) => {
 
     return response.data.price;
   } catch (error) {
-    throw new Error("Não foi possível calcular o frete");
+    throw new Error("Unable to calculate shipping");
   }
 };
 

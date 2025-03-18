@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("../server");
+const app = require("../index");
 const sequelize = require("../src/config/database"); // Importa a conexão do banco de dados
 const Product = require("../src/models/Product");
 

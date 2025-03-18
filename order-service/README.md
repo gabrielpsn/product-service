@@ -1,68 +1,163 @@
-# Microserviço de Pedido
+# Microserviço de Pedidos
 
-Este é um microserviço responsável por gerenciar os pedidos, calcular o frete e controlar o status dos pedidos. Ele é parte de uma arquitetura de microsserviços, sendo independente e capaz de interagir com outros microsserviços, como o de **Produto** e **Frete**.
+## Descrição
 
-## Índice
+Este microserviço gerencia pedidos, permitindo criar, atualizar, listar e cancelar pedidos. Ele também mantém a relação dos pedidos com os produtos e garante a atualização do estoque no serviço de produtos.
 
-- [Introdução](#introdução)
-- [Arquitetura](#arquitetura)
-- [Endpoints da API](#endpoints-da-api)
-  - [Criar Pedido](#criar-pedido)
-  - [Listar Pedidos](#listar-pedidos)
-  - [Atualizar Status do Pedido](#atualizar-status-do-pedido)
-  - [Cálculo de Frete](#cálculo-de-frete)
-- [Exemplo de Fluxo de Criação de Pedido](#exemplo-de-fluxo-de-criação-de-pedido)
-- [Estrutura de Dados](#estrutura-de-dados)
-  - [Pedido](#pedido)
-  - [Item](#item)
-  - [Resposta do Cálculo de Frete](#resposta-do-cálculo-de-frete)
-- [Banco de Dados](#banco-de-dados)
-- [Testes Unitários](#testes-unitários)
-- [Conclusão](#conclusão)
+## Tecnologias Utilizadas
 
----
+- Node.js
+- Express
+- Apollo Server (GraphQL)
+- PostgreSQL/MySQL (ou outro banco de dados relacional)
+- Axios (para comunicação com o microserviço de produtos)
 
-## Introdução
+## Instalação
 
-O **Microserviço de Pedido** gerencia todos os aspectos relacionados ao processo de pedidos, como a criação de pedidos, cálculo do frete, atualização do status dos pedidos e total do pedido. Este serviço é autônomo e se comunica com outros microsserviços por meio de APIs RESTful.
+1. Clone o repositório:
 
-A arquitetura do serviço é baseada em uma API **RESTful** e utiliza o formato de troca de dados **JSON**. A autenticação é feita via **JWT (JSON Web Token)**.
+   ```sh
+   git clone https://github.com/seuusuario/order-service.git
+   ```
 
----
+2. Acesse a pasta do projeto:
 
-## Arquitetura
+   ```sh
+   cd order-service
+   ```
 
-A arquitetura do Microserviço de Pedido segue o padrão de microsserviços, com as seguintes características:
+3. Instale as dependências:
 
-- **API RESTful**: Comunicação por HTTP com endpoints claros.
-- **Axios**: Para consumo de APIs externas, como a de frete.
-- **Banco de Dados**: Utiliza um banco relacional para armazenamento dos pedidos e itens.
+   ```sh
+   npm install
+   ```
 
----
+4. Configure o banco de dados no arquivo `.env`:
+
+   ```env
+
+   DB_NAME=seubanco
+   DB_USER=root
+   DB_PASS=password
+   DB_HOST=localhost
+   DB_DIALECT=mysql
+   PORT=4002
+   ```
+
+BASE_URL_API_PRODUCT_SERVICE=http://localhost:4001/api/products
+
+BASE_URL_API_SHIPPING_SERVICE=http://localhost:4003/calculate
+ZIP_CODE_ORIGIN=01000-000
+
+````
+
+5. Execute as migrações do banco:
+
+```sh
+npm run migrate
+````
+
+6. Inicie o servidor:
+   ```sh
+   npm start
+   ```
 
 ## Endpoints da API
 
-### Criar Pedido
+### **Listar Pedidos**
 
-- **URL**: `/api/orders`
-- **Método**: `POST`
-- **Corpo da Requisição**:
+**GraphQL Query:**
 
-```json
-{
-  "customerId": 123,
-  "items": [
-    {
-      "productId": 1,
-      "quantity": 2,
-      "price": 50
-    },
-    {
-      "productId": 2,
-      "quantity": 1,
-      "price": 20
+```graphql
+query {
+  orders {
+    id
+    customerName
+    items {
+      productId
+      quantity
     }
-  ],
-  "shippingZipcode": "12345-678"
+    totalAmount
+    status
+  }
 }
 ```
+
+### **Buscar Pedido por ID**
+
+**GraphQL Query:**
+
+```graphql
+query {
+  order(id: "1") {
+    id
+    customerName
+    items {
+      productId
+      quantity
+    }
+    totalAmount
+    status
+  }
+}
+```
+
+### **Criar Pedido**
+
+**GraphQL Mutation:**
+
+```graphql
+mutation {
+  createOrder(
+    input: {
+      customerName: "Gabriel Silva"
+      items: [{ productId: "1", quantity: 2 }, { productId: "3", quantity: 1 }]
+    }
+  ) {
+    id
+    status
+  }
+}
+```
+
+### **Atualizar Pedido**
+
+**GraphQL Mutation:**
+
+```graphql
+mutation {
+  updateOrder(id: "1", input: { status: "Shipped" }) {
+    id
+    status
+  }
+}
+```
+
+### **Cancelar Pedido**
+
+**GraphQL Mutation:**
+
+```graphql
+mutation {
+  cancelOrder(id: "1") {
+    success
+    message
+  }
+}
+```
+
+## Controle de Estoque
+
+- Sempre que um pedido é criado, o microserviço de pedidos se comunica com o **microserviço de produtos** para reduzir a quantidade no estoque.
+- Caso o estoque seja insuficiente, a criação do pedido será rejeitada.
+- Se um pedido for cancelado, o estoque será restaurado.
+
+## Executando Testes
+
+```sh
+npm test
+```
+
+## Autor
+
+Desenvolvido por Gabriel. 🚀

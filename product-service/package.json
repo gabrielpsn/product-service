@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "migrate": "node src/config/sync.js"
   },
   "keywords": [],
   "author": "",

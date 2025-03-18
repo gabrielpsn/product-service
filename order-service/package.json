@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "jest --coverage --forceExit"
+    "test": "jest --coverage --forceExit",
+    "migrate": "node src/config/database/migrate.js"
   },
   "keywords": [],
   "author": "",

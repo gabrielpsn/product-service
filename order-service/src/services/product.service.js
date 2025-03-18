@@ -2,8 +2,6 @@ const axios = require("axios");
 require("dotenv").config();
 
 class ProductService {
-  // ... (métodos existentes)
-
   async decreaseProductStock(productId, quantity) {
     try {
       const response = await axios.post(
@@ -12,7 +10,7 @@ class ProductService {
       );
       return response.data;
     } catch (error) {
-      throw new Error(`Erro ao dar baixa no estoque: ${error.message}`);
+      throw new Error(`Error when writing off stock: ${error.message}`);
     }
   }
 }

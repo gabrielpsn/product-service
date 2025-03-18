@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("../server");
+const app = require("../index");
 const Order = require("../src/models/Order");
 const OrderItem = require("../src/models/OrderItem");
 
@@ -23,13 +23,12 @@ jest.mock("../src/models/OrderItem", () => ({
   bulkCreate: jest.fn(),
 }));
 
-describe("Testes do CRUD de Pedidos", () => {
+describe("Order CRUD Testing", () => {
   beforeEach(() => {
-    jest.clearAllMocks(); // Limpa todos os mocks antes de cada teste
+    jest.clearAllMocks();
   });
 
-  // --- Teste: Criar novo pedido ---
-  it("Deve criar um novo pedido", async () => {
+  it("Must create a new order", async () => {
     productService.checkProductAvailability.mockResolvedValue(true);
     productService.calculateProductPrice.mockResolvedValue(50);
     productService.decreaseProductStock.mockResolvedValue({ success: true });
@@ -46,25 +45,22 @@ describe("Testes do CRUD de Pedidos", () => {
         shippingZipcode: "53431-125",
       });
 
-    // Verificações principais
     expect(response.status).toBe(201);
-    expect(response.body.message).toBe("Pedidos criado com sucesso!");
+    expect(response.body.message).toBe("Request created successfully");
   });
 
-  // --- Teste: Pedido sem itens ---
-  it("Deve retornar erro ao criar pedido sem itens", async () => {
+  it("Should return error when creating order without items", async () => {
     const response = await request(app)
       .post("/api/orders")
       .send({ items: [], shippingZipcode: "12345-678" });
 
     expect(response.status).toBe(400);
     expect(response.body.error).toContain(
-      "O pedido deve conter pelo menos um item."
+      "The order must contain at least one item."
     );
   });
 
-  // --- Teste: Listar pedidos ---
-  it("Deve listar pedidos", async () => {
+  it("Must list orders", async () => {
     const mockOrders = [
       { id: 1, totalPrice: 100, shippingCost: 10 },
       { id: 2, totalPrice: 200, shippingCost: 15 },
@@ -77,8 +73,7 @@ describe("Testes do CRUD de Pedidos", () => {
     expect(response.body).toEqual(mockOrders);
   });
 
-  // --- Teste: Buscar pedido específico ---
-  it("Deve retornar um pedido específico", async () => {
+  it("Must return a specific order", async () => {
     const mockOrder = { id: 1, totalPrice: 100, shippingCost: 10 };
     Order.findByPk.mockResolvedValue(mockOrder);
 
@@ -88,18 +83,16 @@ describe("Testes do CRUD de Pedidos", () => {
     expect(response.body).toEqual(mockOrder);
   });
 
-  // --- Teste: Pedido inexistente ---
-  it("Deve retornar erro ao buscar pedido inexistente", async () => {
+  it("Should return error when searching for non-existent order", async () => {
     Order.findByPk.mockResolvedValue(null);
 
     const response = await request(app).get("/api/orders/99");
 
     expect(response.status).toBe(404);
-    expect(response.body.error).toContain("não encontrado");
+    expect(response.body.error).toContain("Order not found");
   });
 
-  // --- Teste: Atualizar status do pedido ---
-  it("Deve atualizar o status do pedido", async () => {
+  it("Must update the order status", async () => {
     const mockOrder = {
       id: 1,
       status: "pending",
@@ -115,8 +108,7 @@ describe("Testes do CRUD de Pedidos", () => {
     expect(mockOrder.save).toHaveBeenCalled();
   });
 
-  // --- Teste: Atualizar status de pedido inexistente ---
-  it("Deve retornar erro ao atualizar status de pedido inexistente", async () => {
+  it("Should return error when updating non-existent order status", async () => {
     Order.findByPk.mockResolvedValue(null);
 
     const response = await request(app)
@@ -126,8 +118,7 @@ describe("Testes do CRUD de Pedidos", () => {
     expect(response.status).toBe(404);
   });
 
-  // --- Teste: Erro no cálculo do preço ---
-  it("Deve retornar erro no cálculo do preço", async () => {
+  it("Should return error in price calculation", async () => {
     productService.checkProductAvailability.mockResolvedValue(true);
     productService.calculateProductPrice.mockRejectedValue(
       new Error("Erro no cálculo")
@@ -141,6 +132,33 @@ describe("Testes do CRUD de Pedidos", () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toContain("Erro ao criar o pedido.");
+    expect(response.body.error).toContain("Error creating order");
+  });
+
+  it("deve atualizar o status do pedido e retornar 200", async () => {
+    const mockOrder = {
+      id: 1,
+      status: "pending",
+      save: jest.fn().mockResolvedValue(true),
+    };
+
+    Order.findByPk.mockResolvedValue(mockOrder);
+
+    const response = await request(app)
+      .put("/api/orders/1/status")
+      .send({ status: "shipped" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      message: "Status updated successfully!",
+      order: expect.objectContaining({
+        id: 1,
+        status: "shipped",
+      }),
+    });
+
+    expect(mockOrder.status).toBe("shipped");
+
+    expect(mockOrder.save).toHaveBeenCalled();
   });
 });

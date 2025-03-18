@@ -7,26 +7,24 @@ exports.createOrder = async (req, res) => {
   try {
     const { items, shippingZipcode } = req.body;
 
-    // Validação: precisa ter itens no pedido
     if (!items || items.length === 0) {
       return res
         .status(400)
-        .json({ error: "O pedido deve conter pelo menos um item." });
+        .json({ error: "The order must contain at least one item." });
     }
 
-    // Simulação de cálculo de frete (poderia ser um serviço externo)
-    // Calculando o frete
-    shippingCost = await calculateFreight(shippingZipcode);
+    const shippingCost = await calculateFreight(shippingZipcode);
 
-    // Calcula o preço total
-    const totalPrice =
-      items.reduce((sum, item) => sum + item.price * item.quantity, 0) +
-      shippingCost;
+    const orderTotalPrice = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
 
-    // Cria o pedido
-    const order = await Order.create({ totalPrice, shippingCost });
+    const order = await Order.create({
+      totalPrice: orderTotalPrice + shippingCost,
+      shippingCost,
+    });
 
-    // Cria os itens do pedido
     const orderItems = items.map((item) => ({
       orderId: order.id,
       productId: item.productId,
@@ -36,41 +34,56 @@ exports.createOrder = async (req, res) => {
 
     await OrderItem.bulkCreate(orderItems);
 
-    for (const item of items) {
-      await productService.decreaseProductStock(item.productId, item.quantity);
-    }
+    await Promise.all(
+      items.map((item) =>
+        productService.decreaseProductStock(item.productId, item.quantity)
+      )
+    );
 
     res
       .status(201)
-      .json({ message: "Pedidos criado com sucesso!", data: items });
+      .json({ message: "Request created successfully", data: items });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao criar o pedido." });
+    res.status(500).json({ error: "Error creating order" });
   }
 };
 
 exports.getOrders = async (req, res) => {
   try {
-    const orders = await Order.findAll({ include: OrderItem });
+    const orders = await Order.findAll({
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+        },
+      ],
+    });
     res.json(orders);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao buscar os pedidos." });
+    res.status(500).json({ error: "Error fetching orders." });
   }
 };
 
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findByPk(req.params.id, { include: OrderItem });
+    const { id } = req.params;
+    const order = await Order.findByPk(id, {
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+        },
+      ],
+    });
 
     if (!order) {
-      return res.status(404).json({ error: "Pedido não encontrado." });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     res.json(order);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao buscar o pedido." });
+    res.status(500).json({ error: "Error fetching order" });
   }
 };
 
@@ -80,15 +93,14 @@ exports.updateOrderStatus = async (req, res) => {
     const order = await Order.findByPk(req.params.id);
 
     if (!order) {
-      return res.status(404).json({ error: "Pedido não encontrado." });
+      return res.status(404).json({ error: "Request not found" });
     }
 
     order.status = status;
     await order.save();
 
-    res.json({ message: "Status atualizado com sucesso!", order });
+    res.json({ message: "Status updated successfully!", order });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao atualizar o status do pedido." });
+    res.status(500).json({ error: "Error updating order status" });
   }
 };
