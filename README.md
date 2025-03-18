@@ -13,11 +13,16 @@ Antes de iniciar, certifique-se de ter instalado:
 
 ---
 
+## Clonando o projeto
+
+1. Clone o repositório do projeto
+   ```sh
+   git clone https://github.com/gabrielpsn/product-service.git
+
 ## 1️⃣ Subindo o Microserviço de Frete
 
-1. Clone o repositório do serviço de frete:
+1. acessando o serviço de frete:
    ```sh
-   git clone https://github.com/seuusuario/freight-service.git
    cd freight-service
    ```
 2. Instale as dependências:
@@ -39,9 +44,8 @@ Antes de iniciar, certifique-se de ter instalado:
 
 ## 2️⃣ Subindo o Microserviço de Produtos
 
-1. Clone o repositório do serviço de produtos:
+1. acessar o serviço de produtos:
    ```sh
-   git clone https://github.com/seuusuario/product-service.git
    cd product-service
    ```
 2. Instale as dependências:
@@ -70,9 +74,8 @@ Antes de iniciar, certifique-se de ter instalado:
 
 ## 3️⃣ Subindo o Microserviço de Pedidos
 
-1. Clone o repositório do serviço de pedidos:
+1. acesse o serviço de pedidos:
    ```sh
-   git clone https://github.com/seuusuario/order-service.git
    cd order-service
    ```
 2. Instale as dependências:
